@@ -2,7 +2,7 @@
 
 A single-page React application that allows users to define workflows for LLM agents to make phone calls and collect information from insurers. Built as part of Smarter Technology's virtual call center design technologist take-home.
 
-**[Run in StackBlitz](https://stackblitz.com/github/ethanfox/smarter-technology-virtual-call-center)** — no install required, runs directly in your browser.
+**[Run in StackBlitz](https://stackblitz.com/github/ethanfox/smarter-technology-virtual-call-center)** — no install required, runs directly in your browser. (Might need to refresh page during while loading)
 
 ## Tech Stack
 
