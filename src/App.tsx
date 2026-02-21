@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useMemo } from "react";
 import {
   ReactFlow,
+  ReactFlowProvider,
   Background,
   BackgroundVariant,
   type Node,
   type Edge,
   useNodesState,
   useEdgesState,
+  useReactFlow,
   MarkerType,
   Panel,
 } from "@xyflow/react";
@@ -65,9 +67,12 @@ function makeEdge(sourceId: string, targetId: string): Edge {
 
 const initialEdges: Edge[] = [makeEdge("1", "2")];
 
-export default function App() {
+const NODE_HEIGHT_ESTIMATE = 100;
+
+function WorkflowBuilder() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const { setCenter, getZoom } = useReactFlow();
 
   const nodeTypes = useMemo(() => ({ question: QuestionNode }), []);
 
@@ -116,39 +121,55 @@ export default function App() {
     [nodes, handleDeleteNode, handleQuestionChange]
   );
 
+  const panToNode = useCallback(
+    (position: { x: number; y: number }) => {
+      requestAnimationFrame(() => {
+        setCenter(position.x + 150, position.y + NODE_HEIGHT_ESTIMATE / 2, {
+          zoom: getZoom(),
+          duration: 500,
+        });
+      });
+    },
+    [setCenter, getZoom]
+  );
+
   const handleAddNode = useCallback(() => {
     setNodes((prevNodes) => {
       const newId = String(Date.now());
       const questionIndex = prevNodes.length % PREDEFINED_QUESTIONS.length;
 
       if (prevNodes.length === 0) {
+        const pos = { x: 0, y: 0 };
+        panToNode(pos);
         return [
           {
             id: newId,
             type: "question",
-            position: { x: 0, y: 0 },
+            position: pos,
             data: { question: PREDEFINED_QUESTIONS[questionIndex] },
           },
         ];
       }
 
       const lastNode = prevNodes[prevNodes.length - 1];
+      const pos = {
+        x: lastNode.position.x,
+        y: lastNode.position.y + NODE_SPACING_Y,
+      };
 
       const newNode: Node<QuestionNodeData> = {
         id: newId,
         type: "question",
-        position: {
-          x: lastNode.position.x,
-          y: lastNode.position.y + NODE_SPACING_Y,
-        },
+        position: pos,
         data: { question: PREDEFINED_QUESTIONS[questionIndex] },
       };
 
       setEdges((prevEdges) => [...prevEdges, makeEdge(lastNode.id, newId)]);
+      panToNode(pos);
 
       return [...prevNodes, newNode];
     });
-  }, [setNodes, setEdges]);
+  }, [setNodes, setEdges, panToNode]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -162,40 +183,48 @@ export default function App() {
   }, [handleAddNode]);
 
   return (
+    <ReactFlow
+      nodes={nodesWithCallbacks}
+      edges={edges}
+      onNodesChange={onNodesChange}
+      onEdgesChange={onEdgesChange}
+      nodeTypes={nodeTypes}
+      fitView
+        fitViewOptions={{ padding: 0.5, maxZoom: 0.85 }}
+      proOptions={{ hideAttribution: true }}
+    >
+      <Panel position="top-left" className="header-panel">
+        <h1 className="header-title">Workflow Builder</h1>
+      </Panel>
+      <Panel position="top-right" className="header-panel">
+        <Button onClick={handleAddNode} className="add-node-btn">
+          <Plus className="size-4" />
+          Add Node
+          <Kbd className="hidden sm:inline-flex bg-white/20 text-white/70 border-white/20 ml-1">
+            {isMac ? <Command className="size-2.5" /> : "Ctrl"}{" "}N
+          </Kbd>
+        </Button>
+      </Panel>
+      <Background variant={BackgroundVariant.Dots} gap={20} size={1.5} color="#d1d5db" />
+      {nodes.length === 0 && (
+        <div className="empty-state">
+          <Workflow className="size-10 text-muted-foreground/50" strokeWidth={1.5} />
+          <p className="empty-state-title">No nodes yet</p>
+          <p className="empty-state-description">
+            Click <strong>+ Add Node</strong> to start building your workflow.
+          </p>
+        </div>
+      )}
+    </ReactFlow>
+  );
+}
+
+export default function App() {
+  return (
     <div className="app-container">
-      <ReactFlow
-        nodes={nodesWithCallbacks}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        nodeTypes={nodeTypes}
-        fitView
-        fitViewOptions={{ padding: 0.3 }}
-        proOptions={{ hideAttribution: true }}
-      >
-        <Panel position="top-left" className="header-panel">
-          <h1 className="header-title">Workflow Builder</h1>
-        </Panel>
-        <Panel position="top-right" className="header-panel">
-          <Button onClick={handleAddNode} className="add-node-btn">
-            <Plus className="size-4" />
-            Add Node
-            <Kbd className="hidden sm:inline-flex bg-white/20 text-white/70 border-white/20 ml-1">
-              {isMac ? <Command className="size-2.5" /> : "Ctrl"}{" "}N
-            </Kbd>
-          </Button>
-        </Panel>
-        <Background variant={BackgroundVariant.Dots} gap={20} size={1.5} color="#d1d5db" />
-        {nodes.length === 0 && (
-          <div className="empty-state">
-            <Workflow className="size-10 text-muted-foreground/50" strokeWidth={1.5} />
-            <p className="empty-state-title">No nodes yet</p>
-            <p className="empty-state-description">
-              Click <strong>+ Add Node</strong> to start building your workflow.
-            </p>
-          </div>
-        )}
-      </ReactFlow>
+      <ReactFlowProvider>
+        <WorkflowBuilder />
+      </ReactFlowProvider>
     </div>
   );
 }
