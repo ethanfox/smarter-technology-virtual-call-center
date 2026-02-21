@@ -121,6 +121,30 @@ function WorkflowBuilder() {
     [nodes, handleDeleteNode, handleQuestionChange]
   );
 
+  const rebuildEdgesFromOrder = useCallback(
+    (orderedNodes: Node<QuestionNodeData>[]) => {
+      const newEdges: Edge[] = [];
+      for (let i = 0; i < orderedNodes.length - 1; i++) {
+        newEdges.push(makeEdge(orderedNodes[i].id, orderedNodes[i + 1].id));
+      }
+      setEdges(newEdges);
+    },
+    [setEdges]
+  );
+
+  const handleNodeDragStop = useCallback(
+    (_event: React.MouseEvent, _draggedNode: Node) => {
+      setNodes((prevNodes) => {
+        const sorted = [...prevNodes].sort(
+          (a, b) => a.position.y - b.position.y
+        );
+        rebuildEdgesFromOrder(sorted);
+        return sorted;
+      });
+    },
+    [setNodes, rebuildEdgesFromOrder]
+  );
+
   const panToNode = useCallback(
     (position: { x: number; y: number }) => {
       requestAnimationFrame(() => {
@@ -188,6 +212,7 @@ function WorkflowBuilder() {
       edges={edges}
       onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}
+      onNodeDragStop={handleNodeDragStop}
       nodeTypes={nodeTypes}
       fitView
         fitViewOptions={{ padding: 0.5, maxZoom: 0.85 }}
