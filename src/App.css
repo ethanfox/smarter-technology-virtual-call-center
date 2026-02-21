@@ -1,0 +1,107 @@
+.app-container {
+  width: 100vw;
+  height: 100vh;
+  background-color: #f5f5f5;
+}
+
+/* Header panels */
+.header-panel {
+  margin: 16px !important;
+}
+
+.header-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+  user-select: none;
+}
+
+/* Add Node button — purple theme */
+.add-node-btn {
+  background-color: #9333ea !important;
+  color: white !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  border-radius: 8px !important;
+  padding: 8px 16px !important;
+  height: auto !important;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.add-node-btn:hover {
+  background-color: #7e22ce !important;
+}
+
+/* Question node card */
+.question-node {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  min-width: 280px;
+  max-width: 320px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.question-node-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+}
+
+.question-node-icon {
+  width: 16px;
+  height: 16px;
+  color: #6b7280;
+}
+
+.question-node-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.question-node-divider {
+  height: 1px;
+  background-color: #e5e7eb;
+}
+
+.question-node-body {
+  padding: 12px 16px;
+}
+
+.question-node-body p {
+  font-size: 13px;
+  color: #4b5563;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* React Flow handles — purple circles */
+.question-node .handle {
+  width: 12px !important;
+  height: 12px !important;
+  background-color: white !important;
+  border: 2px solid #9333ea !important;
+  border-radius: 50% !important;
+}
+
+.question-node .handle:hover {
+  background-color: #9333ea !important;
+}
+
+/* Override React Flow defaults for a cleaner look */
+.react-flow__node {
+  cursor: grab;
+}
+
+.react-flow__node:active {
+  cursor: grabbing;
+}
+
+.react-flow__node.selected .question-node {
+  border-color: #9333ea;
+  box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.2);
+}
