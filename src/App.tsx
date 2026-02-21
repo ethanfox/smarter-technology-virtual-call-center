@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import {
   ReactFlow,
   Background,
@@ -11,10 +11,13 @@ import {
   Panel,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { Plus, Workflow } from "lucide-react";
+import { Plus, Workflow, Command } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Kbd } from "@/components/ui/kbd";
 import { QuestionNode, type QuestionNodeData } from "@/components/QuestionNode";
 import "./App.css";
+
+const isMac = navigator.platform.toUpperCase().includes("MAC");
 
 const PREDEFINED_QUESTIONS = [
   "What percentage does the plan cover for co-insurance on diagnostic lab services?",
@@ -147,6 +150,17 @@ export default function App() {
     });
   }, [setNodes, setEdges]);
 
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "n" && (isMac ? e.metaKey : e.ctrlKey)) {
+        e.preventDefault();
+        handleAddNode();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [handleAddNode]);
+
   return (
     <div className="app-container">
       <ReactFlow
@@ -166,6 +180,9 @@ export default function App() {
           <Button onClick={handleAddNode} className="add-node-btn">
             <Plus className="size-4" />
             Add Node
+            <Kbd className="hidden sm:inline-flex bg-white/20 text-white/70 border-white/20 ml-1">
+              {isMac ? <Command className="size-2.5" /> : "Ctrl"}{" "}N
+            </Kbd>
           </Button>
         </Panel>
         <Background variant={BackgroundVariant.Dots} gap={20} size={1.5} color="#d1d5db" />
