@@ -68,10 +68,40 @@ export default function App() {
 
   const nodeTypes = useMemo(() => ({ question: QuestionNode }), []);
 
+  const handleDeleteNode = useCallback(
+    (nodeId: string) => {
+      setEdges((prevEdges) => {
+        const incoming = prevEdges.find((e) => e.target === nodeId);
+        const outgoing = prevEdges.find((e) => e.source === nodeId);
+
+        const filtered = prevEdges.filter(
+          (e) => e.source !== nodeId && e.target !== nodeId
+        );
+
+        if (incoming && outgoing) {
+          return [...filtered, makeEdge(incoming.source, outgoing.target)];
+        }
+        return filtered;
+      });
+
+      setNodes((prevNodes) => prevNodes.filter((n) => n.id !== nodeId));
+    },
+    [setNodes, setEdges]
+  );
+
+  const nodesWithCallbacks = useMemo(
+    () =>
+      nodes.map((node) => ({
+        ...node,
+        data: { ...node.data, onDelete: handleDeleteNode },
+      })),
+    [nodes, handleDeleteNode]
+  );
+
   const handleAddNode = useCallback(() => {
     setNodes((prevNodes) => {
       const lastNode = prevNodes[prevNodes.length - 1];
-      const newId = String(prevNodes.length + 1);
+      const newId = String(Date.now());
       const questionIndex = prevNodes.length % PREDEFINED_QUESTIONS.length;
 
       const newNode: Node<QuestionNodeData> = {
@@ -93,7 +123,7 @@ export default function App() {
   return (
     <div className="app-container">
       <ReactFlow
-        nodes={nodes}
+        nodes={nodesWithCallbacks}
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
