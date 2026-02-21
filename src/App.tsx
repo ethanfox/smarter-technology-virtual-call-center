@@ -11,7 +11,7 @@ import {
   Panel,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { Plus } from "lucide-react";
+import { Plus, Workflow } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { QuestionNode, type QuestionNodeData } from "@/components/QuestionNode";
 import "./App.css";
@@ -89,20 +89,47 @@ export default function App() {
     [setNodes, setEdges]
   );
 
+  const handleQuestionChange = useCallback(
+    (nodeId: string, question: string) => {
+      setNodes((prevNodes) =>
+        prevNodes.map((n) =>
+          n.id === nodeId ? { ...n, data: { ...n.data, question } } : n
+        )
+      );
+    },
+    [setNodes]
+  );
+
   const nodesWithCallbacks = useMemo(
     () =>
       nodes.map((node) => ({
         ...node,
-        data: { ...node.data, onDelete: handleDeleteNode },
+        data: {
+          ...node.data,
+          onDelete: handleDeleteNode,
+          onQuestionChange: handleQuestionChange,
+        },
       })),
-    [nodes, handleDeleteNode]
+    [nodes, handleDeleteNode, handleQuestionChange]
   );
 
   const handleAddNode = useCallback(() => {
     setNodes((prevNodes) => {
-      const lastNode = prevNodes[prevNodes.length - 1];
       const newId = String(Date.now());
       const questionIndex = prevNodes.length % PREDEFINED_QUESTIONS.length;
+
+      if (prevNodes.length === 0) {
+        return [
+          {
+            id: newId,
+            type: "question",
+            position: { x: 0, y: 0 },
+            data: { question: PREDEFINED_QUESTIONS[questionIndex] },
+          },
+        ];
+      }
+
+      const lastNode = prevNodes[prevNodes.length - 1];
 
       const newNode: Node<QuestionNodeData> = {
         id: newId,
@@ -142,6 +169,15 @@ export default function App() {
           </Button>
         </Panel>
         <Background variant={BackgroundVariant.Dots} gap={20} size={1.5} color="#d1d5db" />
+        {nodes.length === 0 && (
+          <div className="empty-state">
+            <Workflow className="size-10 text-muted-foreground/50" strokeWidth={1.5} />
+            <p className="empty-state-title">No nodes yet</p>
+            <p className="empty-state-description">
+              Click <strong>+ Add Node</strong> to start building your workflow.
+            </p>
+          </div>
+        )}
       </ReactFlow>
     </div>
   );

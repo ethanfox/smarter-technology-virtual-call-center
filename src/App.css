@@ -79,6 +79,21 @@
   margin: 0;
 }
 
+.question-node-textarea {
+  width: 100%;
+  font-size: 13px;
+  color: #4b5563;
+  line-height: 1.5;
+  margin: 0;
+  padding: 4px 6px;
+  border: 1px solid #9333ea;
+  border-radius: 6px;
+  outline: none;
+  resize: none;
+  font-family: inherit;
+  background: #faf5ff;
+}
+
 /* React Flow handles — purple circles */
 .question-node .handle {
   width: 12px !important;
@@ -104,4 +119,29 @@
 .react-flow__node.selected .question-node {
   border-color: #9333ea;
   box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.2);
+}
+
+/* Empty state */
+.empty-state {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  gap: 8px;
+}
+
+.empty-state-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #6b7280;
+  margin: 4px 0 0;
+}
+
+.empty-state-description {
+  font-size: 13px;
+  color: #9ca3af;
+  margin: 0;
 }
