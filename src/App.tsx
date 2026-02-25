@@ -83,7 +83,7 @@ function WorkflowBuilder() {
         const outgoing = prevEdges.find((e) => e.source === nodeId);
 
         const filtered = prevEdges.filter(
-          (e) => e.source !== nodeId && e.target !== nodeId
+          (e) => e.source !== nodeId && e.target !== nodeId,
         );
 
         if (incoming && outgoing) {
@@ -94,18 +94,18 @@ function WorkflowBuilder() {
 
       setNodes((prevNodes) => prevNodes.filter((n) => n.id !== nodeId));
     },
-    [setNodes, setEdges]
+    [setNodes, setEdges],
   );
 
   const handleQuestionChange = useCallback(
     (nodeId: string, question: string) => {
       setNodes((prevNodes) =>
         prevNodes.map((n) =>
-          n.id === nodeId ? { ...n, data: { ...n.data, question } } : n
-        )
+          n.id === nodeId ? { ...n, data: { ...n.data, question } } : n,
+        ),
       );
     },
-    [setNodes]
+    [setNodes],
   );
 
   const nodesWithCallbacks = useMemo(
@@ -118,7 +118,7 @@ function WorkflowBuilder() {
           onQuestionChange: handleQuestionChange,
         },
       })),
-    [nodes, handleDeleteNode, handleQuestionChange]
+    [nodes, handleDeleteNode, handleQuestionChange],
   );
 
   const rebuildEdgesFromOrder = useCallback(
@@ -129,20 +129,20 @@ function WorkflowBuilder() {
       }
       setEdges(newEdges);
     },
-    [setEdges]
+    [setEdges],
   );
 
   const handleNodeDragStop = useCallback(
     (_event: React.MouseEvent, _draggedNode: Node) => {
       setNodes((prevNodes) => {
         const sorted = [...prevNodes].sort(
-          (a, b) => a.position.y - b.position.y
+          (a, b) => a.position.y - b.position.y,
         );
         rebuildEdgesFromOrder(sorted);
         return sorted;
       });
     },
-    [setNodes, rebuildEdgesFromOrder]
+    [setNodes, rebuildEdgesFromOrder],
   );
 
   const panToNode = useCallback(
@@ -154,7 +154,7 @@ function WorkflowBuilder() {
         });
       });
     },
-    [setCenter, getZoom]
+    [setCenter, getZoom],
   );
 
   const handleAddNode = useCallback(() => {
@@ -188,7 +188,7 @@ function WorkflowBuilder() {
         data: { question: PREDEFINED_QUESTIONS[questionIndex] },
       };
 
-      setEdges((prevEdges) => [...prevEdges, makeEdge(lastNode.id, newId)]);
+      // setEdges((prevEdges) => [...prevEdges, makeEdge(lastNode.id, newId)]);
       panToNode(pos);
 
       return [...prevNodes, newNode];
@@ -202,9 +202,15 @@ function WorkflowBuilder() {
         handleAddNode();
       }
     };
+
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [handleAddNode]);
+
+  // Add this - rebuilds edges whenever nodes change
+  useEffect(() => {
+    rebuildEdgesFromOrder(nodes);
+  }, [nodes]);
 
   return (
     <ReactFlow
@@ -215,7 +221,7 @@ function WorkflowBuilder() {
       onNodeDragStop={handleNodeDragStop}
       nodeTypes={nodeTypes}
       fitView
-        fitViewOptions={{ padding: 0.5, maxZoom: 0.85 }}
+      fitViewOptions={{ padding: 0.5, maxZoom: 0.85 }}
       proOptions={{ hideAttribution: true }}
     >
       <Panel position="top-left" className="header-panel">
@@ -226,14 +232,22 @@ function WorkflowBuilder() {
           <Plus className="size-4" />
           Add Node
           <Kbd className="hidden sm:inline-flex bg-white/20 text-white/70 border-white/20 ml-1">
-            {isMac ? <Command className="size-2.5" /> : "Ctrl"}{" "}N
+            {isMac ? <Command className="size-2.5" /> : "Ctrl"} N
           </Kbd>
         </Button>
       </Panel>
-      <Background variant={BackgroundVariant.Dots} gap={20} size={1.5} color="#d1d5db" />
+      <Background
+        variant={BackgroundVariant.Dots}
+        gap={20}
+        size={1.5}
+        color="#d1d5db"
+      />
       {nodes.length === 0 && (
         <div className="empty-state">
-          <Workflow className="size-10 text-muted-foreground/50" strokeWidth={1.5} />
+          <Workflow
+            className="size-10 text-muted-foreground/50"
+            strokeWidth={1.5}
+          />
           <p className="empty-state-title">No nodes yet</p>
           <p className="empty-state-description">
             Click <strong>+ Add Node</strong> to start building your workflow.
