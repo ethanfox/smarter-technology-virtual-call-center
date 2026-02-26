@@ -1,38 +1,82 @@
-import { useState, useRef, useEffect } from "react";
 import { Handle, Position, type NodeProps, type Node } from "@xyflow/react";
-import { MessageSquare, Trash2, Pencil, CornerDownLeft } from "lucide-react";
-import { Kbd } from "@/components/ui/kbd";
+import { MessageSquare, Trash2, Pencil } from "lucide-react";
+import type { NodeFieldConfig } from "@/components/SidePanel";
 
 export type QuestionNodeData = {
   question: string;
+  maxRetries: number;
+  transcriptionModel: string;
+  llmModel: string;
+  temperature: number;
+  maxTokens: number;
   onDelete?: (id: string) => void;
-  onQuestionChange?: (id: string, question: string) => void;
+  onEdit?: (id: string) => void;
+};
+
+export const questionFieldConfig: NodeFieldConfig = {
+  title: "Question",
+  icon: MessageSquare,
+  fields: [
+    {
+      key: "question",
+      label: "Prompt",
+      type: "textarea",
+    },
+    {
+      key: "maxRetries",
+      label: "Max Retries",
+      description:
+        "How many do you want the agent to retry the question until the variables are extracted successfully?",
+      type: "number",
+    },
+    {
+      key: "transcriptionModel",
+      label: "Transcription Model",
+      description: "Which transcription model do you want to use?",
+      type: "select",
+      options: [
+        { label: "Deepgram", value: "deepgram" },
+        { label: "Whisper", value: "whisper" },
+        { label: "Azure Speech", value: "azure_speech" },
+      ],
+    },
+    {
+      key: "llmModel",
+      label: "LLM Model",
+      description:
+        "Which LLM model do you want to use to process these questions?",
+      type: "select",
+      options: [
+        { label: "ChatGPT-5", value: "chatgpt-5" },
+        { label: "ChatGPT-4o", value: "chatgpt-4o" },
+        { label: "Claude 4", value: "claude-4" },
+      ],
+    },
+    {
+      key: "temperature",
+      label: "Temperature",
+      type: "number",
+    },
+    {
+      key: "maxTokens",
+      label: "Max Tokens",
+      type: "number",
+    },
+  ],
+};
+
+export const questionDefaults: Omit<QuestionNodeData, "onDelete" | "onEdit"> = {
+  question: "",
+  maxRetries: 3,
+  transcriptionModel: "deepgram",
+  llmModel: "chatgpt-5",
+  temperature: 0.5,
+  maxTokens: 200,
 };
 
 type QuestionNodeType = Node<QuestionNodeData, "question">;
 
 export function QuestionNode({ id, data }: NodeProps<QuestionNodeType>) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(data.question);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    if (editing && textareaRef.current) {
-      textareaRef.current.focus();
-      textareaRef.current.select();
-    }
-  }, [editing]);
-
-  const commitEdit = () => {
-    const trimmed = draft.trim();
-    if (trimmed && trimmed !== data.question) {
-      data.onQuestionChange?.(id, trimmed);
-    } else {
-      setDraft(data.question);
-    }
-    setEditing(false);
-  };
-
   return (
     <div className="question-node group">
       <Handle type="target" position={Position.Top} className="handle" />
@@ -40,9 +84,9 @@ export function QuestionNode({ id, data }: NodeProps<QuestionNodeType>) {
         <MessageSquare className="question-node-icon" />
         <span className="question-node-label">Question</span>
         <div className="ml-auto flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-          {data.onQuestionChange && !editing && (
+          {data.onEdit && (
             <button
-              onClick={() => setEditing(true)}
+              onClick={() => data.onEdit!(id)}
               className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground cursor-pointer"
               aria-label="Edit question"
             >
@@ -62,39 +106,7 @@ export function QuestionNode({ id, data }: NodeProps<QuestionNodeType>) {
       </div>
       <div className="question-node-divider" />
       <div className="question-node-body">
-        {editing ? (
-          <div className="flex flex-col gap-1.5">
-            <textarea
-              ref={textareaRef}
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onBlur={commitEdit}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  commitEdit();
-                }
-                if (e.key === "Escape") {
-                  setDraft(data.question);
-                  setEditing(false);
-                }
-              }}
-              className="question-node-textarea nodrag nowheel"
-              rows={3}
-            />
-            <div className="flex items-center justify-end gap-1 text-muted-foreground">
-              <Kbd><CornerDownLeft className="size-2.5" /></Kbd>
-              <span className="text-[11px]">to save</span>
-            </div>
-          </div>
-        ) : (
-          <p
-            className="cursor-text"
-            onDoubleClick={() => data.onQuestionChange && setEditing(true)}
-          >
-            {data.question}
-          </p>
-        )}
+        <p>{data.question}</p>
       </div>
       <Handle type="source" position={Position.Bottom} className="handle" />
     </div>
